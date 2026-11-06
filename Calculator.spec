@@ -34,6 +34,10 @@ UNUSED_QT_MODULES = [
 UNUSED_PYTHON_MODULES = [
     "asyncio",
     "doctest",
+    # Compression the app never uses. Its Homebrew library also needs a newer
+    # macOS than everything else in the bundle.
+    "_lzma",
+    "lzma",
     "multiprocessing",
     "pdb",
     "pip",
@@ -113,6 +117,8 @@ app = BUNDLE(
         "CFBundleShortVersionString": __version__,
         "CFBundleVersion": __version__,
         "LSApplicationCategoryType": "public.app-category.utilities",
+        # The Homebrew Python and libraries it was built with need macOS 26.
+        "LSMinimumSystemVersion": "26.0",
         "NSHighResolutionCapable": True,
         # False means the app supports both light and dark mode.
         "NSRequiresAquaSystemAppearance": False,

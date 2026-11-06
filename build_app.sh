@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Build dist/Calculator.app with one command: ./build_app.sh
+# Build dist/Calculator.app and dist/Calculator.dmg with one command: ./build_app.sh
 set -euo pipefail
 
 cd "$(dirname "$0")"
 APP="dist/Calculator.app"
+DMG="dist/Calculator.dmg"
 PYTHON=".venv/bin/python"
 
 if [[ ! -x "$PYTHON" ]]; then
@@ -35,5 +36,15 @@ if ! "$APP/Contents/MacOS/Calculator" --self-test "$REPORT"; then
     exit 1
 fi
 
+echo "==> Creating the disk image"
+rm -f "$DMG"
+STAGING="$(mktemp -d -t calculator-dmg)"
+trap 'rm -rf "$REPORT" "$STAGING"' EXIT
+ditto "$APP" "$STAGING/Calculator.app"
+ln -s /Applications "$STAGING/Applications"
+hdiutil create -quiet -volname Calculator -srcfolder "$STAGING" -format ULMO "$DMG"
+hdiutil verify -quiet "$DMG"
+
 echo
 echo "Done: $PWD/$APP ($(du -sh "$APP" | cut -f1))"
+echo "      $PWD/$DMG ($(du -sh "$DMG" | cut -f1))"

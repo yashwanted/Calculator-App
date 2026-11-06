@@ -18,9 +18,36 @@ handled by a purpose-built parser and never passed to `eval` or `exec`.
 - **Friendly errors:** messages like "Can't divide by zero" clear on the next
   keypress.
 
+## Download
+
+**[Download Calculator for Mac](https://github.com/yashwanted/Calculator-App/releases/latest/download/Calculator.dmg)**
+(about 18 MB)
+
+Requires a Mac with Apple Silicon (M1 or later) and macOS 26 or newer. It won't
+run on Intel Macs.
+
+1. Open `Calculator.dmg` and drag **Calculator** onto **Applications**.
+2. Double-click Calculator in Applications. macOS will show a security warning
+   the first time, because this free app isn't signed with a paid Apple Developer
+   account. Follow the steps below to open it.
+3. Click **Done** in the warning.
+4. Open **System Settings > Privacy & Security** and scroll down to **Security**.
+5. Click **Open Anyway** beside the Calculator message, then confirm with your
+   password or Touch ID.
+
+You only need to do this once. macOS has its own Calculator, so if Finder won't
+let you drag this one into Applications, keep the disk image open and run this in
+Terminal instead:
+
+```bash
+ditto /Volumes/Calculator/Calculator.app /Applications/Calculator.app
+```
+
+Spotlight will then list two apps called Calculator; this one has the coral icon.
+
 ## Set up and run
 
-Requires macOS and Python 3.10 or newer.
+To run from source, you need macOS and Python 3.10 or newer.
 
 ```bash
 python3 -m venv .venv
@@ -40,16 +67,26 @@ python3 main.py
 
 ## Build the app
 
-To build a double-clickable `Calculator.app`:
+To build a double-clickable `Calculator.app` and a `Calculator.dmg` to share:
 
 ```bash
 ./build_app.sh
 ```
 
 This sets up what it needs, draws the icon, builds with PyInstaller, signs the
-app ad-hoc, and runs a self-test inside the finished app. The result is
-`dist/Calculator.app`, about 62 MB. It only runs on Macs with the same processor
-type as the one that built it.
+app ad-hoc, runs a self-test inside the finished app, and creates the disk image.
+The results are `dist/Calculator.app`, about 62 MB, and `dist/Calculator.dmg`,
+about 18 MB. The app only runs on Macs with the same processor type as the one
+that built it, and the macOS version it needs depends on the Python used to build
+it. With Homebrew's Python that's macOS 26, set by `LSMinimumSystemVersion` in
+`Calculator.spec`.
+
+### Publish a download
+
+The disk image goes on a GitHub Release rather than in the repository. Create a
+release called `v1.0.0`, paste `packaging/release_notes.md` as its description,
+and attach `dist/Calculator.dmg`. Keep that file name, because the download link
+above always fetches `Calculator.dmg` from the latest release.
 
 ### Install it in Applications
 
@@ -159,7 +196,8 @@ calculator/ui.py        PySide6 window, custom widgets, themes and app icon
 calculator/history.py   History storage
 calculator/selftest.py  Checks run inside the built app by build_app.sh
 tests/test_engine.py    Tests for the engine and history storage
-build_app.sh            Builds, signs and tests dist/Calculator.app
+build_app.sh            Builds, signs and tests the app, then creates the disk image
+packaging/release_notes.md  Description for the GitHub Release page
 Calculator.spec         PyInstaller recipe: bundle details and what to exclude
 packaging/make_icns.py  Creates packaging/Calculator.icns from the app's icon
 requirements-dev.txt    Build tools (PyInstaller), on top of requirements.txt
