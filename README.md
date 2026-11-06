@@ -97,27 +97,27 @@ codesign --force --deep --sign - /Applications/Calculator.app
 
 ## Keyboard shortcuts
 
-| Action | Key |
-| --- | --- |
-| Digits, decimal point | `0`–`9`, `.` |
-| Add, subtract | `+`, `-` |
-| Multiply, divide | `*` or `X`, `/` |
-| Equals | `Enter` or `=` |
-| Parentheses | `(`, `)` |
-| Percent | `%` |
-| Delete last character | `Backspace` |
-| Clear entry | `Esc` or `C` |
-| All clear | `A` |
-| Change sign | `N` |
-| Square root | `R` |
-| Square | `Q` |
-| Reciprocal (1/x) | `I` |
-| Memory add, subtract | `M`, `Shift+M` |
-| Memory recall, clear | `K`, `L` |
-| Copy result | `Cmd+C` |
-| Paste number or expression | `Cmd+V` |
-| Show or hide history | `H` or `Cmd+Y` |
-| Change appearance | `T` |
+| Action                     | Key             |
+| -------------------------- | --------------- |
+| Digits, decimal point      | `0`–`9`, `.`    |
+| Add, subtract              | `+`, `-`        |
+| Multiply, divide           | `*` or `X`, `/` |
+| Equals                     | `Enter` or `=`  |
+| Parentheses                | `(`, `)`        |
+| Percent                    | `%`             |
+| Delete last character      | `Backspace`     |
+| Clear entry                | `Esc` or `C`    |
+| All clear                  | `A`             |
+| Change sign                | `N`             |
+| Square root                | `R`             |
+| Square                     | `Q`             |
+| Reciprocal (1/x)           | `I`             |
+| Memory add, subtract       | `M`, `Shift+M`  |
+| Memory recall, clear       | `K`, `L`        |
+| Copy result                | `Cmd+C`         |
+| Paste number or expression | `Cmd+V`         |
+| Show or hide history       | `H` or `Cmd+Y`  |
+| Change appearance          | `T`             |
 
 ## How it behaves
 
@@ -167,3 +167,4 @@ requirements-dev.txt    Build tools (PyInstaller), on top of requirements.txt
 
 When run with `python3 main.py` rather than as the built app, the Dock may label
 it "Python" even though the window and menu bar say "Calculator".
+Good Luck
