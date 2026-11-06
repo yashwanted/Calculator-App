@@ -2,6 +2,11 @@
 
 A polished desktop calculator for macOS, built with Python and PySide6 (Qt).
 
+<p>
+  <img src="docs/screenshot-light.png" alt="Calculator in the light theme with its history panel open" width="49%">
+  <img src="docs/screenshot-dark.png" alt="Calculator in the dark theme with its history panel open" width="49%">
+</p>
+
 It does everything a good standard calculator should: correct operator
 precedence, parentheses, percent, square root, square, reciprocal, memory and
 repeat-equals. Arithmetic uses exact decimals, so `0.1 + 0.2` is `0.3`. Input is
@@ -187,6 +192,10 @@ stored inside the app bundle.
 - **Window size, theme, history panel state:**
   `~/Library/Preferences/com.calculator-local.Calculator.plist`.
 
+## License
+
+Released under the [MIT License](LICENSE).
+
 ## Project structure
 
 ```
@@ -201,6 +210,7 @@ packaging/release_notes.md  Description for the GitHub Release page
 Calculator.spec         PyInstaller recipe: bundle details and what to exclude
 packaging/make_icns.py  Creates packaging/Calculator.icns from the app's icon
 requirements-dev.txt    Build tools (PyInstaller), on top of requirements.txt
+docs/                   Screenshots for this README
 ```
 
 When run with `python3 main.py` rather than as the built app, the Dock may label
