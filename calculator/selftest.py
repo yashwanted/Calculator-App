@@ -20,7 +20,7 @@ from PySide6.QtCore import (
     Qt,
     qInstallMessageHandler,
 )
-from PySide6.QtGui import QKeyEvent
+from PySide6.QtGui import QAction, QKeyEvent
 
 from . import __version__
 from .history import HistoryStore, default_history_path
@@ -68,6 +68,13 @@ def _check_saved_state(app, folder: Path) -> list[str]:
         _wait(app, 50)
         if window.grab().isNull():
             problems.append(f"could not render the {mode} theme")
+    titles = {action.text() for action in window.findChildren(QAction)}
+    for title in ("About Calculator", "Keyboard Shortcuts", "Minimize"):
+        if title not in titles:
+            problems.append(f"menu item {title!r} is missing")
+    box, _github = window.about_box()
+    if __version__ not in box.informativeText():
+        problems.append("the About window doesn't show the version")
     window._set_history_open(True)
     _wait(app, 50)
     window.close()

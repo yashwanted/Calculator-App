@@ -26,7 +26,7 @@ handled by a purpose-built parser and never passed to `eval` or `exec`.
 ## Download
 
 **[Download Calculator for Mac](https://github.com/yashwanted/Calculator-App/releases/latest/download/Calculator.dmg)**
-(about 18 MB)
+(about 17 MB)
 
 Requires a Mac with Apple Silicon (M1 or later) and macOS 26 or newer. It won't
 run on Intel Macs.
@@ -81,7 +81,7 @@ To build a double-clickable `Calculator.app` and a `Calculator.dmg` to share:
 This sets up what it needs, draws the icon, builds with PyInstaller, signs the
 app ad-hoc, runs a self-test inside the finished app, and creates the disk image.
 The results are `dist/Calculator.app`, about 62 MB, and `dist/Calculator.dmg`,
-about 18 MB. The app only runs on Macs with the same processor type as the one
+about 17 MB. The app only runs on Macs with the same processor type as the one
 that built it, and the macOS version it needs depends on the Python used to build
 it. With Homebrew's Python that's macOS 26, set by `LSMinimumSystemVersion` in
 `Calculator.spec`.
@@ -89,9 +89,10 @@ it. With Homebrew's Python that's macOS 26, set by `LSMinimumSystemVersion` in
 ### Publish a download
 
 The disk image goes on a GitHub Release rather than in the repository. Create a
-release called `v1.0.0`, paste `packaging/release_notes.md` as its description,
-and attach `dist/Calculator.dmg`. Keep that file name, because the download link
-above always fetches `Calculator.dmg` from the latest release.
+release named after the version, such as `v1.0.1`, paste
+`packaging/release_notes.md` as its description, and attach `dist/Calculator.dmg`.
+Keep that file name, because the download link above always fetches
+`Calculator.dmg` from the latest release.
 
 ### Install it in Applications
 
@@ -160,6 +161,12 @@ codesign --force --deep --sign - /Applications/Calculator.app
 | Paste number or expression | `Cmd+V`         |
 | Show or hide history       | `H` or `Cmd+Y`  |
 | Change appearance          | `T`             |
+| Minimize window            | `Cmd+M`         |
+| Close window               | `Cmd+W`         |
+
+The same list is in the app under **Help > Keyboard Shortcuts**. The Help menu
+also links to this page and to the latest release, and **Calculator > About
+Calculator** shows which version you have.
 
 ## How it behaves
 
@@ -205,11 +212,14 @@ calculator/ui.py        PySide6 window, custom widgets, themes and app icon
 calculator/history.py   History storage
 calculator/selftest.py  Checks run inside the built app by build_app.sh
 tests/test_engine.py    Tests for the engine and history storage
+tests/test_ui.py        Tests for the menus and Help windows
 build_app.sh            Builds, signs and tests the app, then creates the disk image
 packaging/release_notes.md  Description for the GitHub Release page
 Calculator.spec         PyInstaller recipe: bundle details and what to exclude
 packaging/make_icns.py  Creates packaging/Calculator.icns from the app's icon
-requirements-dev.txt    Build tools (PyInstaller), on top of requirements.txt
+packaging/make_dmg_background.py  Draws the disk image window's background
+packaging/dmg_settings.py  Disk image window layout, used by dmgbuild
+requirements-dev.txt    Build tools (PyInstaller, dmgbuild), on top of requirements.txt
 docs/                   Screenshots for this README
 ```
 

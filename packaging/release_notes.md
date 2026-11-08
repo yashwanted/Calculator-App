@@ -1,9 +1,18 @@
 A polished desktop calculator for macOS, with exact decimal arithmetic, a history
 panel, light and dark themes, and full keyboard support.
 
+## What's new in 1.0.1
+
+- A clearer install window: open the disk image and drag Calculator onto the
+  Applications folder, following the arrow.
+- **About Calculator** in the Calculator menu shows which version you have.
+- A new **Help** menu lists every keyboard shortcut and links to the project
+  page and the latest release.
+- **Window > Minimize** (Cmd+M).
+
 ## Download
 
-Download **Calculator.dmg** from the Assets list below (about 18 MB).
+Download **Calculator.dmg** from the Assets list below (about 17 MB).
 
 **Requires:** a Mac with Apple Silicon (M1 or later) and macOS 26 or newer. It
 won't run on Intel Macs.

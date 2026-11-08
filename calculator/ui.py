@@ -23,12 +23,14 @@ from PySide6.QtCore import (
     QSize,
     Qt,
     QTimer,
+    QUrl,
     QVariantAnimation,
 )
 from PySide6.QtGui import (
     QAction,
     QActionGroup,
     QColor,
+    QDesktopServices,
     QFont,
     QFontDatabase,
     QFontMetricsF,
@@ -54,6 +56,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QSizePolicy,
     QStyle,
@@ -75,6 +78,34 @@ TRANSIENT_MESSAGE_MS = 1400
 KEY_FLASH_MS = 110
 VALUE_TEXT_PIXELS = 76
 ERROR_TEXT_PIXELS = 32  # Errors should be readable, not shouted.
+
+PROJECT_URL = "https://github.com/yashwanted/Calculator-App"
+LATEST_RELEASE_URL = f"{PROJECT_URL}/releases/latest"
+
+# Shown by Help > Keyboard Shortcuts. Keep in step with the README.
+KEYBOARD_SHORTCUTS = (
+    ("Digits, decimal point", "0–9, ."),
+    ("Add, subtract", "+, -"),
+    ("Multiply, divide", "* or X, /"),
+    ("Equals", "Enter or ="),
+    ("Parentheses", "(, )"),
+    ("Percent", "%"),
+    ("Delete last character", "Backspace"),
+    ("Clear entry", "Esc or C"),
+    ("All clear", "A"),
+    ("Change sign", "N"),
+    ("Square root", "R"),
+    ("Square", "Q"),
+    ("Reciprocal (1/x)", "I"),
+    ("Memory add, subtract", "M, Shift+M"),
+    ("Memory recall, clear", "K, L"),
+    ("Copy result", "Cmd+C"),
+    ("Paste number or expression", "Cmd+V"),
+    ("Show or hide history", "H or Cmd+Y"),
+    ("Change appearance", "T"),
+    ("Minimize window", "Cmd+M"),
+    ("Close window", "Cmd+W"),
+)
 
 # --- Themes -----------------------------------------------------------------
 
@@ -996,10 +1027,63 @@ class MainWindow(QMainWindow):
             self.mode_actions[mode] = action
 
         window_menu = bar.addMenu("Window")
+        minimize_action = QAction("Minimize", self)
+        minimize_action.setShortcut(QKeySequence("Ctrl+M"))
+        minimize_action.triggered.connect(self.showMinimized)
+        window_menu.addAction(minimize_action)
         close_action = QAction("Close", self)
         close_action.setShortcut(QKeySequence.StandardKey.Close)
         close_action.triggered.connect(self.close)
         window_menu.addAction(close_action)
+
+        help_menu = bar.addMenu("Help")
+        # On macOS, Qt moves this into the app menu, where About belongs.
+        about_action = QAction("About Calculator", self)
+        about_action.setMenuRole(QAction.MenuRole.AboutRole)
+        about_action.triggered.connect(self.show_about)
+        help_menu.addAction(about_action)
+        shortcuts_action = QAction("Keyboard Shortcuts", self)
+        shortcuts_action.triggered.connect(lambda: self.shortcuts_box().exec())
+        help_menu.addAction(shortcuts_action)
+        help_menu.addSeparator()
+        github_action = QAction("Calculator on GitHub", self)
+        github_action.triggered.connect(lambda: open_url(PROJECT_URL))
+        help_menu.addAction(github_action)
+        updates_action = QAction("Check for Updates…", self)
+        updates_action.triggered.connect(lambda: open_url(LATEST_RELEASE_URL))
+        help_menu.addAction(updates_action)
+
+    # --- Help ---------------------------------------------------------------
+
+    def about_box(self) -> tuple[QMessageBox, QPushButton]:
+        """The About window and its "View on GitHub" button, not yet shown."""
+        box = QMessageBox(self)
+        box.setWindowTitle("About Calculator")
+        box.setIconPixmap(make_app_icon().pixmap(96, 96))
+        box.setText("Calculator")
+        box.setInformativeText(f"Version {__version__}")
+        github = box.addButton("View on GitHub", QMessageBox.ButtonRole.ActionRole)
+        box.addButton(QMessageBox.StandardButton.Ok)
+        return box, github
+
+    def show_about(self) -> None:
+        box, github = self.about_box()
+        box.exec()
+        if box.clickedButton() is github:
+            open_url(PROJECT_URL)
+
+    def shortcuts_box(self) -> QMessageBox:
+        """The Keyboard Shortcuts window, not yet shown."""
+        rows = "".join(
+            f"<tr><td>{action}</td><td style='padding-left:16px'><b>{keys}</b></td></tr>"
+            for action, keys in KEYBOARD_SHORTCUTS
+        )
+        box = QMessageBox(self)
+        box.setWindowTitle("Keyboard Shortcuts")
+        box.setText("Keyboard Shortcuts")
+        box.setInformativeText(f"<table>{rows}</table>")
+        box.addButton(QMessageBox.StandardButton.Ok)
+        return box
 
     def _restore_geometry(self) -> None:
         geometry = self.settings.value("geometry")
@@ -1241,6 +1325,12 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QEvent) -> None:
         self._save_settings()
         super().closeEvent(event)
+
+
+def open_url(url: str) -> None:
+    """Open a web page in the default browser."""
+    if not QDesktopServices.openUrl(QUrl(url)):
+        logger.warning("Could not open %s", url)
 
 
 def set_macos_app_name(name: str) -> None:

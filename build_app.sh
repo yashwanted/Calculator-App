@@ -38,11 +38,16 @@ fi
 
 echo "==> Creating the disk image"
 rm -f "$DMG"
-STAGING="$(mktemp -d -t calculator-dmg)"
-trap 'rm -rf "$REPORT" "$STAGING"' EXIT
-ditto "$APP" "$STAGING/Calculator.app"
-ln -s /Applications "$STAGING/Applications"
-hdiutil create -quiet -volname Calculator -srcfolder "$STAGING" -format ULMO "$DMG"
+"$PYTHON" packaging/make_dmg_background.py build/dmg/background.png
+# dmgbuild lays out the window (background, icon positions) without Finder.
+# Its output is only shown on failure, as hdiutil prints deprecation notices.
+if ! .venv/bin/dmgbuild -s packaging/dmg_settings.py \
+    -D app="$APP" -D icon=packaging/Calculator.icns \
+    -D background=build/dmg/background.png \
+    Calculator "$DMG" > build/dmg/dmgbuild.log 2>&1; then
+    cat build/dmg/dmgbuild.log >&2
+    exit 1
+fi
 hdiutil verify -quiet "$DMG"
 
 echo

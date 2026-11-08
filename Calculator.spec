@@ -122,6 +122,5 @@ app = BUNDLE(
         "NSHighResolutionCapable": True,
         # False means the app supports both light and dark mode.
         "NSRequiresAquaSystemAppearance": False,
-        "NSHumanReadableCopyright": "© 2026 Yashwant",
     },
 )
