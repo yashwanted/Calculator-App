@@ -219,8 +219,8 @@ Calculator.spec         PyInstaller recipe: bundle details and what to exclude
 packaging/make_icns.py  Creates packaging/Calculator.icns from the app's icon
 packaging/make_dmg_background.py  Draws the disk image window's background
 packaging/dmg_settings.py  Disk image window layout, used by dmgbuild
-requirements-dev.txt    Build tools (PyInstaller, dmgbuild), on top of requirements.txt
 docs/                   Screenshots for this README
+requirements.txt        Everything needed to run, test and build the app
 ```
 
 When run with `python3 main.py` rather than as the built app, the Dock may label

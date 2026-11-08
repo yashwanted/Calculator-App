@@ -13,7 +13,7 @@ if [[ ! -x "$PYTHON" ]]; then
 fi
 
 echo "==> Installing build dependencies"
-"$PYTHON" -m pip install --quiet --disable-pip-version-check -r requirements-dev.txt
+"$PYTHON" -m pip install --quiet --disable-pip-version-check -r requirements.txt
 
 echo "==> Creating the app icon"
 "$PYTHON" packaging/make_icns.py
