@@ -141,3 +141,28 @@ KEYBOARD_SHORTCUTS = (
     ("Minimize window", "Cmd+M"),
     ("Close window", "Cmd+W"),
 )
+
+
+# What VoiceOver says for each keypad button. Digits are read as they are.
+SPOKEN_NAMES = {
+    "MC": "Memory clear",
+    "MR": "Memory recall",
+    "M+": "Memory add",
+    "M-": "Memory subtract",
+    "backspace": "Delete",
+    "AC": "All clear",
+    "C": "Clear",
+    "(": "Open parenthesis",
+    ")": "Close parenthesis",
+    "/": "Divide",
+    "*": "Multiply",
+    "-": "Subtract",
+    "+": "Add",
+    "=": "Equals",
+    "sqrt": "Square root",
+    "square": "Square",
+    "reciprocal": "Reciprocal",
+    "%": "Percent",
+    "negate": "Change sign",
+    ".": "Decimal point",
+}

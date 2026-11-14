@@ -17,6 +17,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtGui import (
     QColor,
+    QGuiApplication,
     QFont,
     QFontMetricsF,
     QPainter,
@@ -39,6 +40,15 @@ from .theme import (
 KEY_FLASH_MS = 110  # How long a button lights up for a keyboard press.
 
 
+def reduced_motion() -> bool:
+    """True when macOS's Reduce Motion setting is on."""
+    hints = QGuiApplication.styleHints()
+    return (
+        hints is not None
+        and hints.accessibility().motionPreference() == Qt.MotionPreference.ReducedMotion
+    )
+
+
 
 class _Tween(QObject):
     """Animates one 0..1 float, restarting smoothly from wherever it is now."""
@@ -57,6 +67,9 @@ class _Tween(QObject):
 
     def to(self, target: float, duration_ms: int) -> None:
         self._animation.stop()
+        if reduced_motion():
+            self._step(target)  # Jump straight to the end state.
+            return
         self._animation.setDuration(duration_ms)
         self._animation.setStartValue(self.value)
         self._animation.setEndValue(float(target))
@@ -75,6 +88,7 @@ class CalcButton(QAbstractButton):
         self.role = role
         self._colors = DARK_THEME.digit
         self._edge = QColor(0, 0, 0, 0)
+        self._border = QColor(0, 0, 0, 0)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(44, 28 if role == "memory" else 44)
@@ -90,6 +104,7 @@ class CalcButton(QAbstractButton):
     def apply_theme(self, theme: Theme) -> None:
         self._colors = getattr(theme, self.role)
         self._edge = QColor(theme.button_edge)
+        self._border = QColor(theme.button_border)
         self.update()
 
     def flash(self) -> None:
@@ -116,8 +131,9 @@ class CalcButton(QAbstractButton):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # The whole button shrinks slightly while pressed.
-        scale = 1.0 - 0.05 * self._press.value
+        # The whole button shrinks slightly while pressed, unless Reduce Motion
+        # is on, in which case only its colour changes.
+        scale = 1.0 if reduced_motion() else 1.0 - 0.05 * self._press.value
         center = QRectF(self.rect()).center()
         painter.translate(center)
         painter.scale(scale, scale)
@@ -139,7 +155,10 @@ class CalcButton(QAbstractButton):
             QColor(self._colors.pressed),
             self._press.value,
         )
-        painter.setPen(Qt.PenStyle.NoPen)
+        if self._border.alpha() and self.role != "memory":
+            painter.setPen(QPen(self._border, 1.2))
+        else:
+            painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(background)
         painter.drawRoundedRect(rect, radius, radius)
 

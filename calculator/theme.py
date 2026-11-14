@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 from PySide6.QtGui import QColor, QFont, QFontDatabase
@@ -35,6 +35,8 @@ class Theme:
     operator: ButtonColors
     equals: ButtonColors
     memory: ButtonColors
+    # Outline drawn around keypad buttons; only used with Increase Contrast.
+    button_border: str = "#00000000"
 
 
 DARK_THEME = Theme(
@@ -77,6 +79,24 @@ LIGHT_THEME = Theme(
 MODE_SYSTEM, MODE_LIGHT, MODE_DARK = "system", "light", "dark"
 THEME_MODES = (MODE_SYSTEM, MODE_LIGHT, MODE_DARK)
 MODE_LABELS = {MODE_SYSTEM: "Match System", MODE_LIGHT: "Light", MODE_DARK: "Dark"}
+
+
+def high_contrast(theme: Theme) -> Theme:
+    """The theme as shown with macOS's Increase Contrast setting turned on.
+
+    Secondary text moves halfway to the main text colour, and keypad buttons get
+    an outline, so that their edges are clear against the window.
+    """
+
+    def toward_text(colour: str) -> str:
+        return blend(QColor(colour), QColor(theme.text), 0.5).name()
+
+    return replace(
+        theme,
+        muted=toward_text(theme.muted),
+        divider=toward_text(theme.divider),
+        button_border=toward_text(theme.muted),
+    )
 
 
 def blend(start: QColor, end: QColor, amount: float) -> QColor:

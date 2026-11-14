@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from .history import HistoryEntry
+from .history import MAX_ENTRIES, HistoryEntry
 from .theme import DARK_THEME, Theme, ui_font
 
 HISTORY_PANEL_WIDTH = 280
@@ -105,6 +105,7 @@ class HistoryPanel(QFrame):
         self._delegate = _HistoryDelegate(self)
         self.list = QListWidget()
         self.list.setObjectName("historyList")
+        self.list.setAccessibleName("Past calculations")
         self.list.setItemDelegate(self._delegate)
         self.list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -148,13 +149,22 @@ class HistoryPanel(QFrame):
 
     def prepend(self, entry: HistoryEntry) -> None:
         self._add_item(entry, 0)
+        # Match the store, which keeps only the newest MAX_ENTRIES.
+        while self.list.count() > MAX_ENTRIES:
+            self.list.takeItem(self.list.count() - 1)
         self._update_empty_state()
         self.list.scrollToTop()
 
     def _add_item(self, entry: HistoryEntry, row: int) -> None:
         item = QListWidgetItem()
         item.setData(_ENTRY_ROLE, entry)
-        item.setToolTip(f"{entry.expression} {entry.result}\nClick to use this result")
+        result = entry.result.replace("-", "−")
+        item.setToolTip(f"{entry.expression} {result}\nClick to use this result")
+        # Rows are drawn by the delegate, so VoiceOver needs the text given here.
+        item.setData(Qt.ItemDataRole.AccessibleTextRole, f"{entry.expression} {result}")
+        item.setData(
+            Qt.ItemDataRole.AccessibleDescriptionRole, "Click to use this result"
+        )
         self.list.insertItem(row, item)
 
     def _update_empty_state(self) -> None:

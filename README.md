@@ -24,6 +24,9 @@ handled by a purpose-built parser and never passed to `eval` or `exec`.
   lights up when you press it.
 - **Friendly errors:** messages like "Can't divide by zero" clear on the next
   keypress.
+- **Accessible:** VoiceOver reads every button by name, speaks results as they
+  appear, and can read your history. Reduce Motion and Increase Contrast in
+  System Settings are respected.
 
 ## Download
 
@@ -185,6 +188,9 @@ Calculator** shows which version you have.
 - **Paste** accepts numbers and expressions such as `1,200 × (2 + 3)`. Invalid
   text shows "Invalid input" briefly and leaves your calculation untouched.
 
+- **Limits:** a calculation can hold about 100 numbers and 30 levels of
+  parentheses. Keys beyond that are ignored with a "Maximum length reached" note.
+
 ## Run the tests
 
 ```bash
@@ -226,6 +232,7 @@ calculator/selftest.py  Checks run inside the built app by build_app.sh
 tests/test_engine.py    Tests for the engine and history storage
 tests/test_ui.py        Tests for the menus and Help windows
 tests/test_window.py    Tests for the window: clicks, keys, history, themes
+tests/test_accessibility.py  Tests for VoiceOver, Reduce Motion and Increase Contrast
 .github/workflows/      Runs the tests on GitHub after every push
 build_app.sh            Builds, signs and tests the app, then creates the disk image
 packaging/release_notes.md  Description for the GitHub Release page

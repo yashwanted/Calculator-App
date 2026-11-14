@@ -13,6 +13,8 @@ from typing import Optional
 
 from PySide6.QtCore import QByteArray, QEvent, QSettings, QSize, Qt, QTimer, QUrl
 from PySide6.QtGui import (
+    QAccessible,
+    QAccessibleAnnouncementEvent,
     QAction,
     QActionGroup,
     QDesktopServices,
@@ -34,11 +36,11 @@ from PySide6.QtWidgets import (
 )
 
 from . import __version__
-from .engine import Calculator, INVALID_INPUT_MESSAGE
+from .engine import INVALID_INPUT_MESSAGE, TOO_LONG_MESSAGE, Calculator
 from .history import HistoryEntry, HistoryStore
 from .history_panel import HISTORY_PANEL_WIDTH, HistoryPanel
 from .icon import make_app_icon
-from .keys import BUTTON_ROWS, KEYBOARD_SHORTCUTS, engine_key_for_event
+from .keys import BUTTON_ROWS, KEYBOARD_SHORTCUTS, SPOKEN_NAMES, engine_key_for_event
 from .theme import (
     DARK_THEME,
     LIGHT_THEME,
@@ -48,6 +50,7 @@ from .theme import (
     MODE_SYSTEM,
     THEME_MODES,
     Theme,
+    high_contrast,
     ui_font,
 )
 from .widgets import CalcButton, FitLabel, IconButton
@@ -98,8 +101,10 @@ class MainWindow(QMainWindow):
         mode = str(self.settings.value("theme", MODE_SYSTEM))
         self._theme_mode = mode if mode in THEME_MODES else MODE_SYSTEM
         self._apply_theme_mode()
-        QGuiApplication.styleHints().colorSchemeChanged.connect(
-            lambda _scheme: self._refresh_theme()
+        hints = QGuiApplication.styleHints()
+        hints.colorSchemeChanged.connect(lambda _scheme: self._refresh_theme())
+        hints.accessibility().contrastPreferenceChanged.connect(
+            lambda _preference: self._refresh_theme()
         )
         self.history_panel.setVisible(
             self.settings.value("historyOpen", False, type=bool)
@@ -144,9 +149,11 @@ class MainWindow(QMainWindow):
 
     def _build_toolbar(self) -> QHBoxLayout:
         self.theme_button = IconButton(MODE_SYSTEM)
+        self.theme_button.setAccessibleName("Appearance")
         self.theme_button.clicked.connect(self._cycle_theme_mode)
 
         self.memory_indicator = QLabel("M")
+        self.memory_indicator.setAccessibleName("Memory in use")
         self.memory_indicator.setObjectName("memoryIndicator")
         self.memory_indicator.setFont(ui_font(11, QFont.Weight.Bold))
         self.memory_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -157,6 +164,7 @@ class MainWindow(QMainWindow):
         self.memory_indicator.setSizePolicy(policy)
 
         self.history_button = IconButton("history")
+        self.history_button.setAccessibleName("History")
         self.history_button.setCheckable(True)
         self.history_button.setToolTip("Show or hide history  (H)")
         self.history_button.clicked.connect(self._set_history_open)
@@ -177,6 +185,7 @@ class MainWindow(QMainWindow):
             grid.setRowStretch(row, 3 if row == 0 else 5)
             for column, (label, key, role, tooltip) in enumerate(buttons):
                 button = CalcButton(label, role, tooltip)
+                button.setAccessibleName(SPOKEN_NAMES.get(key, label))
                 button.clicked.connect(lambda _=False, k=key: self.press(k))
                 if key == "backspace":
                     button.setAutoRepeat(True)
@@ -304,11 +313,23 @@ class MainWindow(QMainWindow):
                     completed.expression, completed.result, completed.value
                 )
                 self.history_panel.prepend(entry)
+                self.announce(entry.result.replace("-", "−"))
+            elif self.engine.error is not None:
+                self.announce(self.engine.display)
         except Exception:  # A bug must never take down the whole app.
             logger.exception("Unexpected error handling key %r", key)
             self.engine.all_clear()
         self._clear_messages(refresh=False)
+        if self.engine.limit_reached:
+            self._show_expression_message(TOO_LONG_MESSAGE)
+            self.announce(TOO_LONG_MESSAGE)
+            return
         self._refresh()
+
+    def announce(self, message: str) -> None:
+        """Have VoiceOver (when running) speak a result or message."""
+        if QAccessible.isActive():
+            QAccessible.updateAccessibility(QAccessibleAnnouncementEvent(self, message))
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         key = engine_key_for_event(event)
@@ -333,6 +354,7 @@ class MainWindow(QMainWindow):
         if text:
             QGuiApplication.clipboard().setText(text)
             self._show_expression_message("Copied")
+            self.announce("Copied")
 
     def paste_clipboard(self) -> None:
         text = QGuiApplication.clipboard().text()
@@ -345,7 +367,11 @@ class MainWindow(QMainWindow):
             self._clear_messages(refresh=False)
             self._refresh()
         else:
-            self._show_value_message(INVALID_INPUT_MESSAGE)
+            message = (
+                TOO_LONG_MESSAGE if self.engine.limit_reached else INVALID_INPUT_MESSAGE
+            )
+            self._show_value_message(message)
+            self.announce(message)
 
     # --- Rendering ----------------------------------------------------------
 
@@ -359,11 +385,12 @@ class MainWindow(QMainWindow):
         self.value_label.set_max_pixels(
             ERROR_TEXT_PIXELS if is_error else VALUE_TEXT_PIXELS
         )
-        self.value_label.setAccessibleName(value)
+        self.value_label.setAccessibleName(value if is_error else f"Result {value}")
 
         expression = self._expression_message or engine.expression
         self.expression_label.set_text(expression)
         self.expression_label.setToolTip(engine.expression)
+        self.expression_label.setAccessibleName(expression)
         self.expression_label.set_color(
             self.theme.accent if self._expression_message else self.theme.muted
         )
@@ -451,12 +478,19 @@ class MainWindow(QMainWindow):
         self._refresh_theme()
 
     def _resolved_theme(self) -> Theme:
+        hints = QGuiApplication.styleHints()
         if self._theme_mode == MODE_LIGHT:
-            return LIGHT_THEME
-        if self._theme_mode == MODE_DARK:
-            return DARK_THEME
-        scheme = QGuiApplication.styleHints().colorScheme()
-        return DARK_THEME if scheme == Qt.ColorScheme.Dark else LIGHT_THEME
+            theme = LIGHT_THEME
+        elif self._theme_mode == MODE_DARK:
+            theme = DARK_THEME
+        elif hints.colorScheme() == Qt.ColorScheme.Dark:
+            theme = DARK_THEME
+        else:
+            theme = LIGHT_THEME
+        contrast = hints.accessibility().contrastPreference()
+        if contrast == Qt.ContrastPreference.HighContrast:
+            theme = high_contrast(theme)
+        return theme
 
     def _refresh_theme(self) -> None:
         if self._applying_mode:

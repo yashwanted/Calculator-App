@@ -1,6 +1,18 @@
 A polished desktop calculator for macOS, with exact decimal arithmetic, a history
 panel, light and dark themes, and full keyboard support.
 
+## What's new in 1.0.2
+
+- **VoiceOver:** every button has a spoken name, such as "Divide" or "Memory
+  recall", results and errors are read out as they appear, and history rows can
+  be read.
+- **Reduce Motion:** buttons no longer shrink when pressed while it's on.
+- **Increase Contrast:** buttons get outlines and secondary text is darker.
+- **Fixed:** after more than 500 calculations, the history panel kept showing
+  older rows that weren't saved.
+- Keys ignored because a calculation is too long now say "Maximum length
+  reached" instead of doing nothing.
+
 ## What's new in 1.0.1
 
 - A clearer install window: open the disk image and drag Calculator onto the

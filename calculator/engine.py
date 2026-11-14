@@ -66,6 +66,7 @@ MAX_OPERAND_TOKENS = 24
 
 DIVIDE_BY_ZERO_MESSAGE = "Can't divide by zero"
 INVALID_INPUT_MESSAGE = "Invalid input"
+TOO_LONG_MESSAGE = "Maximum length reached"
 TOO_LARGE_MESSAGE = "Number too large"
 
 
@@ -458,6 +459,9 @@ class Calculator:
     def __init__(self) -> None:
         self.memory: Optional[Decimal] = None
         self._completed: Optional[Calculation] = None
+        # Set when the last key or paste was ignored because the calculation is
+        # as long (or as deeply nested) as allowed, so the UI can say why.
+        self.limit_reached = False
         self._reset()
 
     def _reset(self) -> None:
@@ -661,7 +665,10 @@ class Calculator:
                 pass
 
     def _has_room(self) -> bool:
-        return len(self._tokens) < MAX_TOKENS
+        if len(self._tokens) < MAX_TOKENS:
+            return True
+        self.limit_reached = True
+        return False
 
     # --- Entering numbers ---------------------------------------------------
 
@@ -717,7 +724,10 @@ class Calculator:
     def open_paren(self) -> None:
         if self._after_result:
             self._reset()
-        if self._open_paren_count() >= MAX_PAREN_DEPTH or not self._has_room():
+        if self._open_paren_count() >= MAX_PAREN_DEPTH:
+            self.limit_reached = True
+            return
+        if not self._has_room():
             return
         self._commit_entry()
         if self._last_kind() in _ENDS_OPERAND:
@@ -1016,10 +1026,14 @@ class Calculator:
         """Paste a number or expression. Returns False, changing nothing, if
         the text isn't valid. Text like "1/0" is valid and shows its error.
         """
+        self.limit_reached = False
         if self._error is not None:
             self._reset()
         cleaned = text.strip()
-        if not cleaned or len(cleaned) > MAX_PASTE_LENGTH:
+        if len(cleaned) > MAX_PASTE_LENGTH:
+            self.limit_reached = True
+            return False
+        if not cleaned:
             return False
         try:
             tokens = tokenize(cleaned)
@@ -1027,6 +1041,7 @@ class Calculator:
             return False
         tokens.extend([TOKEN_RP] * self._count_unclosed(tokens))
         if len(self._tokens) + len(tokens) + 2 > MAX_TOKENS:
+            self.limit_reached = True
             return False
         try:
             value = evaluate_tokens(tokens)
@@ -1064,6 +1079,7 @@ class Calculator:
 
     def press(self, key: str) -> None:
         """Press a key by name: a digit, operator, or an id such as ``sqrt``."""
+        self.limit_reached = False
         handlers: dict[str, Callable[[], None]] = {
             ".": self.input_decimal,
             "(": self.open_paren,

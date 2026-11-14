@@ -255,3 +255,37 @@ def test_a_crashing_engine_key_is_contained(window, monkeypatch):
     monkeypatch.setattr(window.engine, "press", broken)
     window.press("+")  # Must not raise.
     assert shown_value(window) == "0"
+
+
+# --- Limits ------------------------------------------------------------------
+
+
+def test_history_panel_never_shows_more_than_is_kept(window, monkeypatch):
+    from calculator import history, history_panel
+
+    monkeypatch.setattr(history, "MAX_ENTRIES", 5)
+    monkeypatch.setattr(history_panel, "MAX_ENTRIES", 5)
+    for number in range(8):
+        type_text(window, f"{number}+1=")
+    assert len(window.history.entries) == 5
+    assert window.history_panel.list.count() == 5
+    newest = window.history_panel.list.item(0).data(Qt.ItemDataRole.AccessibleTextRole)
+    assert newest == "7 + 1 = 8"
+
+
+def test_keys_ignored_at_the_length_limit_say_why(window):
+    type_text(window, "1+" * 120)
+    assert window.expression_label.text() == ui.TOO_LONG_MESSAGE
+    type_text(window, "1")  # A key that fits clears the message again.
+    assert window.expression_label.text() != ui.TOO_LONG_MESSAGE
+
+
+def test_too_deep_parentheses_say_why(window):
+    type_text(window, "(" * 31)
+    assert window.expression_label.text() == ui.TOO_LONG_MESSAGE
+
+
+def test_pasting_too_much_says_why(window):
+    QGuiApplication.clipboard().setText("1+" * 300)
+    window.paste_clipboard()
+    assert shown_value(window) == ui.TOO_LONG_MESSAGE

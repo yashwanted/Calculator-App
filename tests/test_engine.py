@@ -814,3 +814,23 @@ def test_unknown_key_is_ignored():
     calculator = press(Calculator(), "5")
     calculator.press("banana")
     assert calculator.display == "5"
+
+
+def test_limit_reached_is_reported_and_reset():
+    calc = Calculator()
+    for _ in range(150):
+        calc.press("1")
+        calc.press("+")
+    assert calc.limit_reached
+    calc.press("AC")
+    assert not calc.limit_reached
+    calc.press("1")
+    assert not calc.limit_reached
+
+
+def test_paste_reports_overlong_text_as_a_limit():
+    calc = Calculator()
+    assert not calc.paste("1" * 600)
+    assert calc.limit_reached
+    assert not calc.paste("abc")
+    assert not calc.limit_reached
