@@ -14,7 +14,7 @@ from PySide6.QtCore import QSettings  # noqa: E402
 from PySide6.QtGui import QAction, QKeySequence  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
-from calculator import __version__, ui  # noqa: E402
+from calculator import __version__, keys, ui  # noqa: E402
 from calculator.history import HistoryStore  # noqa: E402
 
 
@@ -81,10 +81,10 @@ def test_about_window_shows_version_without_personal_name(window):
 
 def test_shortcuts_window_lists_every_letter_key(window):
     listed = set()
-    for _action, keys in ui.KEYBOARD_SHORTCUTS:
-        listed.update(re.split(r", | or ", keys))
-    letters = {chr(key.value) for key in ui._LETTER_KEYS} | {"H", "T"}
+    for _action, shortcut in keys.KEYBOARD_SHORTCUTS:
+        listed.update(re.split(r", | or ", shortcut))
+    letters = {chr(key.value) for key in keys.LETTER_KEYS} | {"H", "T"}
     assert letters <= listed
     text = window.shortcuts_box().informativeText()
-    for action, keys in ui.KEYBOARD_SHORTCUTS:
-        assert action in text and keys in text
+    for action, shortcut in keys.KEYBOARD_SHORTCUTS:
+        assert action in text and shortcut in text

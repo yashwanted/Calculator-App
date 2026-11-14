@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create packaging/Calculator.icns from the icon drawn in calculator/ui.py."""
+"""Create packaging/Calculator.icns from the icon drawn in calculator/icon.py."""
 
 import os
 import subprocess
@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 from PySide6.QtCore import QSize  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
-from calculator.ui import make_app_icon  # noqa: E402
+from calculator.icon import make_app_icon  # noqa: E402
 
 # Every size macOS looks for, each at normal and Retina resolution.
 POINT_SIZES = (16, 32, 128, 256, 512)

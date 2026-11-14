@@ -1,5 +1,7 @@
 # Calculator
 
+[![Tests](https://github.com/yashwanted/Calculator-App/actions/workflows/tests.yml/badge.svg)](https://github.com/yashwanted/Calculator-App/actions/workflows/tests.yml)
+
 A polished desktop calculator for macOS, built with Python and PySide6 (Qt).
 
 <p>
@@ -189,6 +191,11 @@ Calculator** shows which version you have.
 python3 -m pytest
 ```
 
+The tests cover the calculation engine, history storage, and the window itself,
+using real clicks and key presses. Qt draws off screen, so no window appears.
+GitHub also runs them, with a check for mistakes like unused imports, after
+every push.
+
 ## Where data is stored
 
 The built app and `python3 main.py` share the same files, and nothing is ever
@@ -208,11 +215,18 @@ Released under the [MIT License](LICENSE).
 ```
 main.py                 Entry point
 calculator/engine.py    Parsing, evaluation, memory and key logic (no UI code)
-calculator/ui.py        PySide6 window, custom widgets, themes and app icon
+calculator/ui.py        Main window, menus and app start-up
+calculator/widgets.py   Custom-drawn buttons and the display
+calculator/history_panel.py  The history side panel
+calculator/theme.py     Light and dark colours, and fonts
+calculator/keys.py      Keypad layout and keyboard shortcuts
+calculator/icon.py      The app icon, drawn in code
 calculator/history.py   History storage
 calculator/selftest.py  Checks run inside the built app by build_app.sh
 tests/test_engine.py    Tests for the engine and history storage
 tests/test_ui.py        Tests for the menus and Help windows
+tests/test_window.py    Tests for the window: clicks, keys, history, themes
+.github/workflows/      Runs the tests on GitHub after every push
 build_app.sh            Builds, signs and tests the app, then creates the disk image
 packaging/release_notes.md  Description for the GitHub Release page
 Calculator.spec         PyInstaller recipe: bundle details and what to exclude
